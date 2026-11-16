@@ -1,0 +1,4 @@
+
+
+# Get output from the vision server
+GET http://localhost:5055/objects

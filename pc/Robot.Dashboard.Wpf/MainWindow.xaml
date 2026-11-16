@@ -1,0 +1,211 @@
+<Window x:Class="Robot.Dashboard.Wpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:Robot.Dashboard.Wpf"
+        Title="xArm Sensor Dashboard" Width="1180" Height="900" MinWidth="920" MinHeight="700"
+        Background="#0B1220" Foreground="#E2E8F0" FontFamily="Segoe UI" FontSize="13"
+        Loaded="WindowLoaded" Closed="WindowClosed">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="VisibleWhenTrue" />
+        <Style TargetType="TextBlock">
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Background" Value="#121E30" />
+            <Setter Property="BorderBrush" Value="#26364E" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="18" />
+            <Setter Property="Margin" Value="5" />
+        </Style>
+        <Style x:Key="Label" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#94A3B8" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+        <Style x:Key="Value" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="42" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="15,8" />
+            <Setter Property="Margin" Value="4,0" />
+            <Setter Property="Background" Value="#263B56" />
+            <Setter Property="Foreground" Value="#F1F5F9" />
+            <Setter Property="BorderBrush" Value="#3B526E" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="5"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="#365477" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="#5EEAD4" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.4" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="GridViewColumnHeader">
+            <Setter Property="Background" Value="#203149" />
+            <Setter Property="Foreground" Value="#CBD5E1" />
+            <Setter Property="BorderBrush" Value="#30445E" />
+            <Setter Property="Padding" Value="8,5" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+        </Style>
+        <Style TargetType="ProgressBar">
+            <Setter Property="Height" Value="6" />
+            <Setter Property="Maximum" Value="1023" />
+            <Setter Property="Background" Value="#26364E" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Margin" Value="0,8,0,10" />
+        </Style>
+    </Window.Resources>
+    <DockPanel Margin="22">
+        <StackPanel DockPanel.Dock="Top">
+            <Grid Margin="5,0,5,16">
+                <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="xArm / Sensor studio" FontSize="25" FontWeight="SemiBold" />
+                    <TextBlock Text="UNO R3 telemetry  /  raw readings  /  no arm control" Foreground="#94A3B8" Margin="0,4,0,0" />
+                </StackPanel>
+                <Border Grid.Column="1" Background="#17263A" CornerRadius="8" Padding="16,10" VerticalAlignment="Center">
+                    <TextBlock x:Name="StateLabel" Text="{Binding StateLabel}" Foreground="{Binding StateColor}"
+                               FontWeight="Bold" AutomationProperties.AutomationId="StateLabel" />
+                </Border>
+            </Grid>
+            <Border Style="{StaticResource Card}">
+                <WrapPanel VerticalAlignment="Center">
+                    <TextBlock Text="SOURCE" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="0,0,14,0" />
+                    <ComboBox x:Name="PortPicker" ItemsSource="{Binding Ports}" SelectedItem="{Binding SelectedPort}"
+                              IsEnabled="{Binding CanConnect}" Width="230" Height="34"
+                              VerticalContentAlignment="Center" Margin="0,0,8,0"
+                              AutomationProperties.AutomationId="PortPicker" />
+                    <Button Content="Refresh ports" Click="RefreshPortsClicked" IsEnabled="{Binding CanConnect}" />
+                    <Button x:Name="ConnectButton" Content="Connect" Click="ConnectClicked"
+                            IsEnabled="{Binding CanConnect}" AutomationProperties.AutomationId="ConnectButton" />
+                    <Button x:Name="DisconnectButton" Content="Disconnect" Click="DisconnectClicked"
+                            IsEnabled="{Binding CanDisconnect}" AutomationProperties.AutomationId="DisconnectButton" />
+                    <TextBlock Text="{Binding Connection}" Foreground="{Binding StateColor}" Margin="16,8,0,0" />
+                </WrapPanel>
+            </Border>
+            <Border Background="#17263A" CornerRadius="8" Padding="14,10" Margin="5">
+                <StackPanel>
+                    <TextBlock Text="{Binding ModeDescription}" Foreground="{Binding StateColor}" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding HealthDetail}" Margin="0,3,0,0" />
+                    <TextBlock Text="{Binding DataDescription}" Foreground="#94A3B8" Margin="0,3,0,0" />
+                </StackPanel>
+            </Border>
+            <Border Background="#3A2D1C" CornerRadius="8" Padding="12,8" Margin="5"
+                    Visibility="{Binding HasNotice, Converter={StaticResource VisibleWhenTrue}}">
+                <DockPanel>
+                    <Button DockPanel.Dock="Right" Content="Dismiss" Click="DismissClicked" Margin="12,0,0,0" />
+                    <TextBlock Text="{Binding Notice}" Foreground="#FDBA74" VerticalAlignment="Center" />
+                </DockPanel>
+            </Border>
+        </StackPanel>
+        <Border DockPanel.Dock="Bottom" Margin="5,12,5,0">
+            <StackPanel>
+                <TextBlock Text="{Binding Diagnostics}" Foreground="#94A3B8" FontFamily="Consolas" FontSize="12" />
+                <TextBlock Text="{Binding DeviceDetails}" Foreground="#64748B" FontSize="12" Margin="0,4,0,0" />
+            </StackPanel>
+        </Border>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel>
+                <UniformGrid Columns="3" Opacity="{Binding ReadingOpacity}">
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="DISTANCE" Style="{StaticResource Label}" />
+                            <TextBlock x:Name="RangeValue" Text="{Binding Range}" Style="{StaticResource Value}"
+                                       Foreground="{Binding RangeColor}" AutomationProperties.AutomationId="RangeValue" />
+                            <TextBlock Text="millimetres  /  ultrasonic" Foreground="#94A3B8" Margin="0,0,0,14" />
+                            <local:TrendChart Height="112" Values="{Binding RangeHistory}" Stroke="#5EEAD4" />
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="AMBIENT LIGHT" Style="{StaticResource Label}" />
+                            <TextBlock Text="{Binding Light}" Style="{StaticResource Value}" Foreground="#FDE68A" />
+                            <TextBlock Text="raw ADC  /  0-1023" Foreground="#94A3B8" />
+                            <ProgressBar Value="{Binding LightLevel, Mode=OneWay}" Foreground="#FDE68A" />
+                            <local:TrendChart Height="97" Values="{Binding LightHistory}" Stroke="#FDE68A" FixedMaximum="1023" />
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="SOUND PEAK" Style="{StaticResource Label}" />
+                            <TextBlock Text="{Binding Sound}" Style="{StaticResource Value}" Foreground="#93C5FD" />
+                            <TextBlock Foreground="#94A3B8">
+                                <Run Text="raw ADC  /  1s mean: " /><Run Text="{Binding SoundMean, Mode=OneWay}" />
+                            </TextBlock>
+                            <ProgressBar Value="{Binding SoundLevel, Mode=OneWay}" Foreground="#93C5FD" />
+                            <local:TrendChart Height="97" Values="{Binding SoundHistory}" Stroke="#93C5FD" FixedMaximum="1023" />
+                        </StackPanel>
+                    </Border>
+                </UniformGrid>
+                <Grid Opacity="{Binding ReadingOpacity}">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="DIGITAL INPUTS" Style="{StaticResource Label}" />
+                            <UniformGrid Columns="4" Margin="0,10">
+                                <StackPanel><TextBlock Text="IR LEFT" Style="{StaticResource Label}" /><TextBlock Text="{Binding Left}" Foreground="{Binding LeftColor}" FontWeight="Bold" /></StackPanel>
+                                <StackPanel><TextBlock Text="IR CENTER" Style="{StaticResource Label}" /><TextBlock Text="{Binding Center}" Foreground="{Binding CenterColor}" FontWeight="Bold" /></StackPanel>
+                                <StackPanel><TextBlock Text="IR RIGHT" Style="{StaticResource Label}" /><TextBlock Text="{Binding Right}" Foreground="{Binding RightColor}" FontWeight="Bold" /></StackPanel>
+                                <StackPanel><TextBlock Text="TOUCH" Style="{StaticResource Label}" /><TextBlock Text="{Binding Touch}" Foreground="{Binding TouchColor}" FontWeight="Bold" /></StackPanel>
+                            </UniformGrid>
+                            <TextBlock Text="Highlighted when active. Input edges are retained in the event log." Foreground="#64748B" Margin="0,12,0,0" />
+                        </StackPanel>
+                    </Border>
+                    <Border Grid.Column="1" Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="{Binding ColorDescription}" Style="{StaticResource Label}" />
+                            <UniformGrid Columns="4" Margin="0,6">
+                                <StackPanel><TextBlock Text="RED" Foreground="#FCA5A5" /><TextBlock Text="{Binding Red}" FontSize="24" FontWeight="SemiBold" /></StackPanel>
+                                <StackPanel><TextBlock Text="GREEN" Foreground="#86EFAC" /><TextBlock Text="{Binding Green}" FontSize="24" FontWeight="SemiBold" /></StackPanel>
+                                <StackPanel><TextBlock Text="BLUE" Foreground="#93C5FD" /><TextBlock Text="{Binding Blue}" FontSize="24" FontWeight="SemiBold" /></StackPanel>
+                                <StackPanel><TextBlock Text="CLEAR" Foreground="#CBD5E1" /><TextBlock Text="{Binding Clear}" FontSize="24" FontWeight="SemiBold" /></StackPanel>
+                            </UniformGrid>
+                            <TextBlock Text="{Binding ColorStatus}" Foreground="#94A3B8" Margin="0,8,0,0" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <DockPanel Margin="0,0,0,10">
+                            <TextBlock DockPanel.Dock="Right" Text="{Binding Status}" Foreground="#FDBA74" />
+                            <TextBlock Text="EVENTS &amp; HEALTH" Style="{StaticResource Label}" />
+                        </DockPanel>
+                        <TextBlock Text="{Binding Sequence}" Foreground="#94A3B8" Margin="0,0,0,10" />
+                        <ListView x:Name="EventLog" ItemsSource="{Binding Log}" Height="170"
+                                  Background="#0D1726" Foreground="#CBD5E1" BorderThickness="0"
+                                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                  AutomationProperties.AutomationId="EventLog">
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn Header="Time" Width="105" DisplayMemberBinding="{Binding Time}" />
+                                    <GridViewColumn Header="Type" Width="115" DisplayMemberBinding="{Binding Kind}" />
+                                    <GridViewColumn Header="Detail" Width="720" DisplayMemberBinding="{Binding Detail}" />
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+                        <TextBlock Text="Newest first  /  last 200 events  /  warnings remain visible until dismissed"
+                                   Foreground="#64748B" FontSize="11" Margin="0,8,0,0" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>
